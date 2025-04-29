@@ -1,0 +1,22 @@
+services:
+  database:
+    image: postgres:15
+    container_name: symfony_database
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}" ]
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "35556:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+volumes:
+  database_data:

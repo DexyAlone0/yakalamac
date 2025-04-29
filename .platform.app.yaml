@@ -1,0 +1,51 @@
+name: app
+type: 'php:8.3'
+disk: 1024
+dependencies:
+  php:
+    composer/composer: "^2"
+runtime:
+  extensions:
+    - apcu
+    - blackfire
+    - ctype
+    - iconv
+    - mbstring
+    - pdo_pgsql
+    - sodium
+    - xsl
+    - redis
+relationships:
+  database: "postgresql:postgresql"
+variables:
+  php:
+    opcache.preload: config/preload.php
+  env:
+
+
+build:
+  flavor: composer
+web:
+  locations:
+    "/":
+      root: "public"
+      expires: 1h
+      passthru: "/index.php"
+mounts:
+  "/var": { source: local, source_path: var }
+hooks:
+  build: |
+    set -x -e
+    
+    curl -fs https://get.symfony.com/cloud/configurator | bash
+    
+    NODE_VERSION=18 symfony-build
+
+  deploy: |
+    set -x -e
+    
+    symfony-deploy
+crons:
+  security-check:
+    spec: '50 23 * * *'
+    cmd: if [ "$PLATFORM_ENVIRONMENT_TYPE" = "production" ]; then croncape php-security-checker; fi
